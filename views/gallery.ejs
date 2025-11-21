@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title><%= title %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .lightbox {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.75);
+        z-index: 50;
+      }
+      .lightbox.show {
+        display: flex;
+      }
+      .lightbox img {
+        max-width: 90vw;
+        max-height: 85vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-800">
+    <header class="bg-white border-b">
+      <div
+        class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between"
+      >
+        <a href="/" class="text-2xl font-bold">Shayan Library Islamabad</a>
+        <nav class="space-x-4 text-sm md:text-base">
+          <a href="/" class="hover:underline">Home</a>
+          <a href="/books" class="hover:underline">Books</a>
+          <a href="/gallery" class="font-semibold underline">Gallery</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+      <h1 class="text-3xl font-bold mb-6">Library Gallery</h1>
+      <% if (!images || images.length === 0) { %>
+      <div class="p-6 bg-white rounded-xl border shadow-sm">
+        No images yet. Add files to <code>/public/images/gallery</code>.
+      </div>
+      <% } else { %>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <% images.forEach(function(name) { %>
+        <button
+          class="group relative overflow-hidden rounded-xl bg-white border shadow-sm"
+          data-full="/images/gallery/<%= name %>"
+        >
+          <img
+            src="/images/gallery/<%= name %>"
+            class="w-full h-40 object-cover transition-transform group-hover:scale-105"
+            alt="<%= name %>"
+            loading="lazy"
+          />
+        </button>
+        <% }) %>
+      </div>
+      <% } %>
+    </main>
+
+    <div id="lightbox" class="lightbox"><img id="lightbox-img" alt="" /></div>
+    <script>
+      const lb = document.getElementById("lightbox");
+      const img = document.getElementById("lightbox-img");
+      document.addEventListener("click", (e) => {
+        const b = e.target.closest("button[data-full]");
+        if (b) {
+          img.src = b.dataset.full;
+          lb.classList.add("show");
+        } else if (e.target === lb) {
+          lb.classList.remove("show");
+          img.removeAttribute("src");
+        }
+      });
+      document.addEventListener(
+        "keydown",
+        (e) => e.key === "Escape" && lb.classList.remove("show")
+      );
+    </script>
+  </body>
+</html>

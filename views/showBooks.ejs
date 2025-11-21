@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Books — AIPS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .truncate-1 {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50">
+    <header class="bg-white border-b">
+      <div class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-800">AIPS Books</h1>
+        <a href="/" class="text-sm text-indigo-600 hover:text-indigo-500">🏠 Home</a>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+      <!-- Flash / message banner -->
+      <% if (query && query.msg) { %>
+        <div class="mb-4 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-800 px-4 py-3">
+          <%= query.msg %>
+        </div>
+      <% } %>
+
+      <!-- The Add Book card has been removed from this page.
+           This view now only displays the list of books. -->
+
+      <!-- Books Table -->
+      <section class="bg-white border rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-slate-800">All Books</h2>
+          <span class="text-sm text-slate-500">
+            Total: <%= Array.isArray(books) ? books.length : 0 %>
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <!--
+            Use the `table-fixed` class so the table's width adapts to the
+            available container.  Without this, columns grow to fit their
+            content, forcing horizontal scrolling on smaller screens.  By
+            specifying `table-fixed` and `w-full`, each column shares the
+            available width, and long text either truncates (via the
+            existing `truncate-1` classes) or wraps according to CSS.
+          -->
+          <table class="min-w-full table-fixed text-sm">
+            <thead class="bg-slate-100 text-slate-700">
+              <tr>
+                <th class="text-left font-semibold px-4 py-3">Book ID</th>
+                <th class="text-left font-semibold px-4 py-3">Title</th>
+                <th class="text-left font-semibold px-4 py-3">Author</th>
+                <!-- Hide less important columns on small screens to reduce horizontal scroll -->
+                <th class="text-left font-semibold px-4 py-3 hidden sm:table-cell">Category</th>
+                <th class="text-left font-semibold px-4 py-3 hidden md:table-cell">Year</th>
+                <th class="text-left font-semibold px-4 py-3 hidden md:table-cell">Total</th>
+                <th class="text-left font-semibold px-4 py-3">Available</th>
+                <th class="text-left font-semibold px-4 py-3 hidden sm:table-cell">Shelf No</th>
+                <th class="text-left font-semibold px-4 py-3 hidden sm:table-cell">Shelf</th>
+                <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+                <th class="text-left font-semibold px-4 py-3">Actions</th>
+                <% } %>
+              </tr>
+              <!-- Search row: allows filtering by title and author -->
+              <tr>
+                <th colspan="<%= (typeof isAdmin !== 'undefined' && isAdmin) ? 10 : 9 %>" class="px-4 py-2 bg-white">
+                  <form method="GET" action="/books" class="flex flex-wrap items-center gap-3">
+                    <!-- Find by Title -->
+                    <input
+                      type="text"
+                      name="title"
+                      value="<%= (query && query.title) ? query.title : '' %>"
+                      placeholder="Find by Title"
+                      class="border border-slate-300 rounded-md px-3 py-2 w-full sm:w-auto flex-1 min-w-[120px]"
+                    />
+                    <!-- Find by Author -->
+                    <input
+                      type="text"
+                      name="author"
+                      value="<%= (query && query.author) ? query.author : '' %>"
+                      placeholder="Find by Author"
+                      class="border border-slate-300 rounded-md px-3 py-2 w-full sm:w-auto flex-1 min-w-[120px]"
+                    />
+                    <!-- Submit and reset controls -->
+                    <button
+                      type="submit"
+                      class="bg-indigo-600 text-white rounded-md px-4 py-2 hover:bg-indigo-700"
+                    >
+                      Search
+                    </button>
+                    <% if (query && (query.title || query.author)) { %>
+                      <a href="/books" class="text-indigo-600 underline px-2 py-2">Clear</a>
+                    <% } %>
+                  </form>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (Array.isArray(books) && books.length) { %>
+                <% books.forEach(function(book) { %>
+                  <tr class="border-t hover:bg-slate-50">
+                    <td class="px-4 py-3 truncate-1" title="<%= book.bookID || book.BookID || '' %>">
+                      <%= book.bookID || book.BookID || '' %>
+                    </td>
+                    <td class="px-4 py-3 truncate-1" title="<%= book.title || book.Title || '' %>">
+                      <%= book.title || book.Title || '' %>
+                    </td>
+                    <td class="px-4 py-3 truncate-1" title="<%= book.author || book.Author || '' %>">
+                      <%= book.author || book.Author || '' %>
+                    </td>
+                    <td class="px-4 py-3 truncate-1 hidden sm:table-cell" title="<%= book.category || book.Category || '' %>">
+                      <%= book.category || book.Category || '' %>
+                    </td>
+
+                    <td class="px-4 py-3 hidden md:table-cell"><%= book.year || book.Year || '' %></td>
+                    <td class="px-4 py-3 hidden md:table-cell"><%= (book.totalCopies ?? book.TotalCopies ?? 0) %></td>
+
+                    <!-- Available (mirrors controller defaults: if missing but total>0, show total) -->
+                    <td class="px-4 py-3">
+                      <% 
+                        const __t = Number(book.totalCopies ?? book.TotalCopies ?? 0) || 0;
+                        let __a = (book.availableCopies ?? book.AvailableCopies);
+                        if ((__a === undefined || __a === null) && __t > 0) __a = __t;
+                        __a = Number(__a ?? 0) || 0;
+                      %>
+                      <%= __a %>
+                    </td>
+
+                    <td class="px-4 py-3 hidden sm:table-cell"><%= book.shelfNo || book.ShelfNo || '' %></td>
+                    <td class="px-4 py-3 truncate-1 hidden sm:table-cell" title="<%= book.shelf || book.Shelf || '' %>">
+                      <%= book.shelf || book.Shelf || '' %>
+                    </td>
+
+                    <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+                    <!-- Actions -->
+                    <td class="px-4 py-3 space-x-2 align-top">
+                      <%
+                        const issueId = (book.bookID || book.BookID || book._id);
+                        const available_ = __a;
+                      %>
+
+                      <!-- Issue -->
+                      <form action="/books/issue/<%= issueId %>" method="POST" class="inline-block mb-1">
+                        <button
+                          class="rounded-lg border px-3 py-1.5 hover:bg-emerald-50 border-emerald-300 text-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          <%= available_ <= 0 ? "disabled" : "" %>>
+                          Issue
+                        </button>
+                      </form>
+
+                      <!-- Return -->
+                      <form action="/books/return/<%= issueId %>" method="POST" class="inline-block mb-1">
+                        <button
+                          class="rounded-lg border px-3 py-1.5 hover:bg-blue-50 border-blue-300 text-blue-700">
+                          Return
+                        </button>
+                      </form>
+
+                      <!-- Delete -->
+                      <form action="/books/delete/<%= book._id %>" method="POST" class="inline-block mb-1" onsubmit="return confirm('Delete this book?')">
+                        <button class="rounded-lg border px-3 py-1.5 hover:bg-red-50 border-red-300 text-red-700">
+                          Delete
+                        </button>
+                      </form>
+
+                      <!-- Update removed from table; use Update modal on Welcome page -->
+                    </td>
+                    <% } %>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="10" class="px-4 py-6 text-center text-slate-500">
+                    No books yet.
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
