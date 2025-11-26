@@ -102,46 +102,55 @@ async function findBookByParam(idOrCode) {
 
 /** GET /books — list with add form */
 exports.listBooks = async (req, res, next) => {
-  /**
-   * List books with optional filtering by title and author.
-   *
-   * The librarian can specify `title` and/or `author` query parameters in the
-   * URL to narrow down the results.  Searches are case‑insensitive and will
-   * match both the camelCase (title/author) and legacy PascalCase (Title/Author)
-   * fields defined on the Book schema.  When neither parameter is provided,
-   * all books are returned.
-   */
   try {
-    const { title = "", author = "" } = req.query;
+    const { title = "", author = "", page = 1 } = req.query; // Default page = 1
+    const perPage = 10; // Books per page
     const conditions = [];
 
-    // Title filter: match either the camelCase or PascalCase field
+    // Title filter
     if (title && String(title).trim()) {
       const t = String(title).trim();
       const regex = new RegExp(t, "i");
       conditions.push({ $or: [{ title: regex }, { Title: regex }] });
     }
 
-    // Author filter: match either the camelCase or PascalCase field
+    // Author filter
     if (author && String(author).trim()) {
       const a = String(author).trim();
       const regex = new RegExp(a, "i");
       conditions.push({ $or: [{ author: regex }, { Author: regex }] });
     }
 
-    // Build the final MongoDB filter.  If no conditions, use empty object.
+    // Build the final MongoDB filter
     const filter = conditions.length > 0 ? { $and: conditions } : {};
 
+    // Calculate the total number of books
+    const totalBooks = await Book.countDocuments(filter);
+    const totalPages = Math.ceil(totalBooks / perPage); // Calculate total pages
+
+    // Ensure currentPage is within valid bounds
+    const currentPage = Math.min(Math.max(parseInt(page) || 1, 1), totalPages); // Correct currentPage validation
+
+    // Fetch books for the current page
     const books = await Book.find(filter)
       .sort({ createdAt: 1, _id: 1 })
+      .skip((currentPage - 1) * perPage) // Skip books from previous pages
+      .limit(perPage) // Limit to perPage number of books
       .lean();
-    // Determine admin status by inspecting the isAdmin cookie.  The admin login
-    // route sets this cookie to "1" for authenticated librarians.  When the
-    // cookie is missing or not equal to "1" we treat the request as a guest
-    // view and hide privileged actions on the books list page.
+
+    // Determine admin status by inspecting the isAdmin cookie
     const cookies = cookie.parse(req.headers.cookie || "");
     const isAdmin = cookies.isAdmin === "1";
-    res.render("showBooks", { books, query: req.query, isAdmin });
+
+    // Render the page with books and pagination data
+    res.render("showBooks", {
+      books,
+      query: req.query,
+      isAdmin,
+      currentPage,
+      totalPages,
+      totalBooks, // Pass totalBooks to display
+    });
   } catch (err) {
     next(err);
   }
@@ -302,9 +311,7 @@ exports.issueBook = async (req, res, next) => {
     const book = await findBookByParam(req.params.id);
     if (!book) {
       return res.redirect(
-        redirectTarget(req) +
-          "?msg=" +
-          encodeURIComponent("Book not found.")
+        redirectTarget(req) + "?msg=" + encodeURIComponent("Book not found.")
       );
     }
 
@@ -370,10 +377,7 @@ exports.issueBook = async (req, res, next) => {
     const updated = await Book.findOneAndUpdate(
       {
         _id: book._id,
-        $or: [
-          { availableCopies: { $gt: 0 } },
-          { AvailableCopies: { $gt: 0 } },
-        ],
+        $or: [{ availableCopies: { $gt: 0 } }, { AvailableCopies: { $gt: 0 } }],
       },
       updateDoc,
       { new: true }
@@ -391,9 +395,7 @@ exports.issueBook = async (req, res, next) => {
       msg = `Book issued successfully to ${member.fullName} (${member.memberID}).`;
     }
     return res.redirect(
-      redirectTarget(req) +
-        "?msg=" +
-        encodeURIComponent(msg)
+      redirectTarget(req) + "?msg=" + encodeURIComponent(msg)
     );
   } catch (err) {
     next(err);
@@ -435,7 +437,8 @@ exports.returnBook = async (req, res, next) => {
       );
     }
 
-    const newAvailable = total > 0 ? Math.min(available + 1, total) : available + 1;
+    const newAvailable =
+      total > 0 ? Math.min(available + 1, total) : available + 1;
     book.availableCopies = newAvailable;
     book.AvailableCopies = newAvailable;
     // Remove borrower record if possible
@@ -456,9 +459,7 @@ exports.returnBook = async (req, res, next) => {
       msg = `Book returned successfully by ${member.fullName} (${member.memberID}).`;
     }
     return res.redirect(
-      redirectTarget(req) +
-        "?msg=" +
-        encodeURIComponent(msg)
+      redirectTarget(req) + "?msg=" + encodeURIComponent(msg)
     );
   } catch (err) {
     next(err);
