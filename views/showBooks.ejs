@@ -142,31 +142,38 @@
 
         <!-- Pagination controls -->
         <!-- Pagination controls -->
-        <div class="px-6 py-4 flex justify-between items-center">
+        <div
+          class="px-6 py-4 flex justify-between items-center flex-col sm:flex-row"
+        >
+          <!-- Previous Button -->
           <% if (currentPage > 1) { %>
           <a
             href="/books?page=<%= currentPage - 1 %>"
-            class="text-indigo-600 hover:text-indigo-500"
+            class="text-indigo-600 hover:text-indigo-500 mb-2 sm:mb-0"
             >Previous</a
           >
           <% } %>
 
-          <span>Page <%= currentPage %> of <%= totalPages %></span>
+          <!-- Page Information -->
+          <span class="text-sm text-slate-500 mb-2 sm:mb-0">
+            Page <%= currentPage %> of <%= totalPages %>
+          </span>
 
+          <!-- Next Button -->
           <% if (currentPage < totalPages) { %>
           <a
             href="/books?page=<%= currentPage + 1 %>"
-            class="text-indigo-600 hover:text-indigo-500"
+            class="text-indigo-600 hover:text-indigo-500 mb-2 sm:mb-0"
             >Next</a
           >
           <% } %>
 
-          <!-- Direct Page Search -->
-          <div class="flex items-center space-x-2">
+          <!-- Direct Page Input (Go to specific page) -->
+          <div class="flex items-center space-x-2 w-full sm:w-auto">
             <input
               type="number"
               id="pageInput"
-              class="p-2 border border-gray-300 rounded"
+              class="p-2 border border-gray-300 rounded w-full sm:w-20"
               min="1"
               max="<%= totalPages %>"
               value="<%= currentPage %>"
