@@ -13,7 +13,6 @@
       }
     </style>
   </head>
-
   <body class="min-h-screen bg-slate-50">
     <header class="bg-white border-b">
       <div
@@ -32,6 +31,7 @@
       <section class="bg-white border rounded-2xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b flex items-center justify-between">
           <h2 class="text-lg font-semibold text-slate-800">All Books</h2>
+
           <span class="text-sm text-slate-500"> Total: <%= totalBooks %> </span>
         </div>
 
@@ -42,15 +42,11 @@
                 <th class="text-left font-semibold px-4 py-3">Book ID</th>
                 <th class="text-left font-semibold px-4 py-3">Title</th>
                 <th class="text-left font-semibold px-4 py-3">Author</th>
-
-                <!-- Category (hide on mobile) -->
                 <th
                   class="text-left font-semibold px-4 py-3 hidden sm:table-cell"
                 >
                   Category
                 </th>
-
-                <!-- Year + Total hide on mobile -->
                 <th
                   class="text-left font-semibold px-4 py-3 hidden md:table-cell"
                 >
@@ -61,10 +57,9 @@
                 >
                   Total
                 </th>
-
                 <th class="text-left font-semibold px-4 py-3">Available</th>
 
-                <!-- Shelf No + Shelf → ALWAYS VISIBLE -->
+                <!-- Shelf columns: ALWAYS visible (no hidden classes) -->
                 <th class="text-left font-semibold px-4 py-3">Shelf No</th>
                 <th class="text-left font-semibold px-4 py-3">Shelf</th>
 
@@ -73,90 +68,100 @@
                 <% } %>
               </tr>
             </thead>
-
             <tbody>
               <% if (Array.isArray(books) && books.length) { %> <%
               books.forEach(function(book) { %>
               <tr class="border-t hover:bg-slate-50">
                 <td
                   class="px-4 py-3 truncate-1"
-                  title="<%= book.bookID || book.BookID %>"
+                  title="<%= book.bookID || book.BookID || '' %>"
                 >
-                  <%= book.bookID || book.BookID %>
+                  <%= book.bookID || book.BookID || '' %>
                 </td>
-
-                <td class="px-4 py-3 truncate-1" title="<%= book.title %>">
-                  <%= book.title %>
+                <td
+                  class="px-4 py-3 truncate-1"
+                  title="<%= book.title || book.Title || '' %>"
+                >
+                  <%= book.title || book.Title || '' %>
                 </td>
-
-                <td class="px-4 py-3 truncate-1" title="<%= book.author %>">
-                  <%= book.author %>
+                <td
+                  class="px-4 py-3 truncate-1"
+                  title="<%= book.author || book.Author || '' %>"
+                >
+                  <%= book.author || book.Author || '' %>
                 </td>
-
-                <td class="px-4 py-3 truncate-1 hidden sm:table-cell">
-                  <%= book.category %>
+                <td
+                  class="px-4 py-3 truncate-1 hidden sm:table-cell"
+                  title="<%= book.category || book.Category || '' %>"
+                >
+                  <%= book.category || book.Category || '' %>
                 </td>
-
-                <td class="px-4 py-3 hidden md:table-cell"><%= book.year %></td>
-
                 <td class="px-4 py-3 hidden md:table-cell">
-                  <%= book.totalCopies ?? 0 %>
+                  <%= book.year || book.Year || '' %>
+                </td>
+                <td class="px-4 py-3 hidden md:table-cell">
+                  <%= (book.totalCopies ?? book.TotalCopies ?? 0) %>
+                </td>
+                <td class="px-4 py-3">
+                  <%= (book.availableCopies ?? book.AvailableCopies ?? 0) %>
                 </td>
 
-                <td class="px-4 py-3"><%= book.availableCopies ?? 0 %></td>
-
-                <!-- ALWAYS show Shelf info -->
-                <td class="px-4 py-3"><%= book.shelfNo %></td>
-
-                <td class="px-4 py-3 truncate-1" title="<%= book.shelf %>">
-                  <%= book.shelf %>
+                <!-- Shelf No + Shelf – always visible, with fallbacks -->
+                <td class="px-4 py-3">
+                  <%= book.shelfNo || book.ShelfNo || '' %>
+                </td>
+                <td
+                  class="px-4 py-3 truncate-1"
+                  title="<%= book.shelf || book.Shelf || '' %>"
+                >
+                  <%= book.shelf || book.Shelf || '' %>
                 </td>
 
                 <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
                 <td class="px-4 py-3 space-x-2 align-top">
-                  <!-- Admin action buttons here -->
+                  <!-- Actions (Issue, Return, Delete, etc.) -->
                 </td>
                 <% } %>
               </tr>
               <% }) %> <% } else { %>
-
               <tr>
                 <td colspan="10" class="px-4 py-6 text-center text-slate-500">
                   No books yet.
                 </td>
               </tr>
-
               <% } %>
             </tbody>
           </table>
         </div>
 
-        <!-- Pagination -->
+        <!-- Pagination controls -->
         <div
           class="px-6 py-4 flex justify-between items-center flex-col sm:flex-row"
         >
+          <!-- Previous Button -->
           <% if (currentPage > 1) { %>
           <a
             href="/books?page=<%= currentPage - 1 %>"
             class="text-indigo-600 hover:text-indigo-500 mb-2 sm:mb-0"
+            >Previous</a
           >
-            Previous
-          </a>
           <% } %>
 
+          <!-- Page Information -->
           <span class="text-sm text-slate-500 mb-2 sm:mb-0">
             Page <%= currentPage %> of <%= totalPages %>
           </span>
 
+          <!-- Next Button -->
           <% if (currentPage < totalPages) { %>
           <a
             href="/books?page=<%= currentPage + 1 %>"
             class="text-indigo-600 hover:text-indigo-500 mb-2 sm:mb-0"
+            >Next</a
           >
-            Next
-          </a>
           <% } %>
 
+          <!-- Direct Page Input (Go to specific page) -->
           <div class="flex items-center space-x-2 w-full sm:w-auto">
             <input
               type="number"
@@ -178,6 +183,7 @@
         <script>
           function goToPage() {
             const page = document.getElementById("pageInput").value;
+            if (!page) return;
             window.location.href = `/books?page=${page}`;
           }
         </script>
