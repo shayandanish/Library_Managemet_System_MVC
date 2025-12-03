@@ -2,80 +2,102 @@
 <html>
   <head>
     <title>Library — Welcome</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
   </head>
   <body class="bg-light">
-    <div class="container py-5">
-      <!-- Logout button aligned to the top‑right of the page -->
-      <div class="d-flex justify-content-end mb-3">
-        <form action="/admin/logout" method="POST" class="d-inline">
-          <button type="submit" class="btn btn-danger">Logout</button>
+    <div class="container py-4 py-md-5">
+      <!-- Top bar: title (mobile) + logout -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0 d-md-none">AIPS Library — Admin</h2>
+        <form action="/admin/logout" method="POST" class="ms-auto">
+          <button type="submit" class="btn btn-outline-danger btn-sm">
+            Logout
+          </button>
         </form>
       </div>
 
-      <div class="text-center mb-4">
-        <h1 class="mb-1">Welcome to the AIPS Library Islamabad</h1>
-        <p class="text-muted">Quick actions for librarian</p>
-        <div class="d-flex justify-content-center gap-3 mt-3">
-          <!-- Create new members -->
-          <a href="/members/add" class="btn btn-primary btn-lg">Add Member</a>
-          <!-- Navigate to books listing -->
-          <a href="/books" class="btn btn-outline-secondary btn-lg"
-            >View Books</a
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+          <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body text-center p-3 p-md-4">
+              <h1 class="mb-1 fs-4 fs-md-3">
+                Welcome to the AIPS Library Islamabad
+              </h1>
+              <p class="text-muted mb-3 mb-md-4">Quick actions for librarian</p>
+
+              <!-- Primary actions: big buttons, stacked on mobile -->
+              <div
+                class="d-flex flex-column flex-sm-row justify-content-center align-items-stretch gap-2 gap-sm-3 mt-2"
+              >
+                <a
+                  href="/members/add"
+                  class="btn btn-primary btn-lg w-100 w-sm-auto"
+                  >Add Member</a
+                >
+                <a
+                  href="/books"
+                  class="btn btn-outline-secondary btn-lg w-100 w-sm-auto"
+                  >View Books</a
+                >
+                <a
+                  href="/members/list"
+                  class="btn btn-outline-secondary btn-lg w-100 w-sm-auto"
+                  >Registered Members</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Secondary actions: wrap nicely on small screens -->
+          <div
+            class="d-flex flex-column flex-sm-row justify-content-center gap-2 flex-wrap"
           >
-          <!-- View all registered members (restored) -->
-          <a href="/members/list" class="btn btn-outline-secondary btn-lg"
-            >Registered Members</a
-          >
+            <a href="/books/add" class="btn btn-primary w-100 w-sm-auto">
+              Add Books
+            </a>
+
+            <button
+              class="btn btn-outline-primary w-100 w-sm-auto"
+              data-bs-toggle="modal"
+              data-bs-target="#issueModal"
+            >
+              Issue Book
+            </button>
+
+            <button
+              class="btn btn-outline-success w-100 w-sm-auto"
+              data-bs-toggle="modal"
+              data-bs-target="#returnModal"
+            >
+              Return Book
+            </button>
+
+            <button
+              class="btn btn-outline-warning w-100 w-sm-auto"
+              data-bs-toggle="modal"
+              data-bs-target="#updateModal"
+            >
+              Update Book
+            </button>
+          </div>
+
+          <!-- Optional alert if redirected here with a message -->
+          <% if (typeof query !== 'undefined' && query.msg) { %>
+          <div class="mt-3" style="max-width: 720px; margin: 0 auto">
+            <div class="alert alert-info mb-0"><%= query.msg %></div>
+          </div>
+          <% } %>
         </div>
       </div>
-
-      <div class="d-flex justify-content-center gap-2">
-        <!-- Go to Books -->
-        <a href="/books/add" class="btn btn-primary">Add Books</a>
-
-        <!-- Issue Book -->
-        <button
-          class="btn btn-outline-primary"
-          data-bs-toggle="modal"
-          data-bs-target="#issueModal"
-        >
-          Issue Book
-        </button>
-
-        <!-- Return Book -->
-        <button
-          class="btn btn-outline-success"
-          data-bs-toggle="modal"
-          data-bs-target="#returnModal"
-        >
-          Return Book
-        </button>
-
-        <!-- Update Book (NEW) -->
-        <button
-          class="btn btn-outline-warning"
-          data-bs-toggle="modal"
-          data-bs-target="#updateModal"
-        >
-          Update Book
-        </button>
-      </div>
-
-      <!-- Optional alert if redirected here with a message -->
-      <% if (typeof query !== 'undefined' && query.msg) { %>
-      <div class="container" style="max-width: 720px">
-        <div class="alert alert-info mt-4 mb-0"><%= query.msg %></div>
-      </div>
-      <% } %>
     </div>
 
     <!-- Issue Modal -->
     <div class="modal fade" id="issueModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-dialog-centered">
         <form id="issueForm" class="modal-content" method="POST">
           <div class="modal-header">
             <h5 class="modal-title">Issue a Book</h5>
@@ -104,7 +126,7 @@
               </button>
             </div>
             <div id="issueDetails" class="d-none">
-              <div class="card">
+              <div class="card mb-2">
                 <div class="card-body">
                   <h6 id="iTitle" class="card-title mb-1"></h6>
                   <div class="small text-muted mb-2" id="iMeta"></div>
@@ -118,9 +140,9 @@
                 No copies available.
               </div>
             </div>
+
             <!-- Member selection for issuing -->
             <div class="mb-3">
-              <!-- Search box for finding a member. Typing here will filter the dropdown. -->
               <label for="issueUserSearch" class="form-label"
                 >Search Member</label
               >
@@ -130,7 +152,6 @@
                 class="form-control mb-2"
                 placeholder="Name, ID, email or phone"
               />
-              <!-- Dropdown list of members populated by the search -->
               <label for="issueUserSelect" class="form-label"
                 >Select Member</label
               >
@@ -159,7 +180,7 @@
 
     <!-- Return Modal -->
     <div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-dialog-centered">
         <form id="returnForm" class="modal-content" method="POST">
           <div class="modal-header">
             <h5 class="modal-title">Return a Book</h5>
@@ -188,7 +209,7 @@
               </button>
             </div>
             <div id="returnDetails" class="d-none">
-              <div class="card">
+              <div class="card mb-2">
                 <div class="card-body">
                   <h6 id="rTitle" class="card-title mb-1"></h6>
                   <div class="small text-muted mb-2" id="rMeta"></div>
@@ -202,9 +223,8 @@
                 All copies already returned.
               </div>
             </div>
-            <!-- Member selection for returning -->
+
             <div class="mb-3">
-              <!-- Search box to filter members -->
               <label for="returnUserSearch" class="form-label"
                 >Search Member</label
               >
@@ -214,7 +234,6 @@
                 class="form-control mb-2"
                 placeholder="Name, ID, email or phone"
               />
-              <!-- Dropdown list of members to return book -->
               <label for="returnUserSelect" class="form-label"
                 >Select Member</label
               >
@@ -241,9 +260,9 @@
       </div>
     </div>
 
-    <!-- Update Modal (NEW) -->
+    <!-- Update Modal -->
     <div class="modal fade" id="updateModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-dialog-centered">
         <form id="updateForm" class="modal-content" method="POST">
           <div class="modal-header">
             <h5 class="modal-title">Update a Book</h5>
@@ -492,7 +511,7 @@
           this.action = "/books/return/" + encodeURIComponent(id);
         });
 
-      // --- Update (NEW) ---
+      // --- Update ---
       const updateIdInput = document.getElementById("updateBookId");
       const checkUpdateBtn = document.getElementById("checkUpdateBtn");
       const updateError = document.getElementById("updateError");
@@ -522,7 +541,6 @@
           return;
         }
 
-        // Prefill
         uTitle.value = data.title || "";
         uAuthor.value = data.author || "";
         uCategory.value = data.category || "";
@@ -536,7 +554,6 @@
         updateFields.classList.remove("d-none");
         updateSubmit.disabled = false;
 
-        // Set form action to your update route
         document.getElementById("updateForm").action =
           "/books/update/" + encodeURIComponent(id);
       }
@@ -577,7 +594,6 @@
           loadMembers("returnUserSelect");
         });
 
-      // When searching in the issue modal, filter the members list
       document
         .getElementById("issueUserSearch")
         ?.addEventListener("input", (ev) => {
@@ -585,7 +601,6 @@
           loadMembers("issueUserSelect", { q });
         });
 
-      // When searching in the return modal, filter the members list
       document
         .getElementById("returnUserSearch")
         ?.addEventListener("input", (ev) => {
