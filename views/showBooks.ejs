@@ -35,6 +35,12 @@
           <span class="text-sm text-slate-500"> Total: <%= totalBooks %> </span>
         </div>
 
+        <% if (notFoundMessage) { %>
+        <div class="px-6 py-3 bg-amber-50 text-amber-700 text-sm border-b">
+          <%= notFoundMessage %>
+        </div>
+        <% } %>
+
         <div class="overflow-x-auto">
           <table class="min-w-full table-fixed text-sm">
             <thead class="bg-slate-100 text-slate-700">
@@ -126,7 +132,7 @@
               <% }) %> <% } else { %>
               <tr>
                 <td colspan="10" class="px-4 py-6 text-center text-slate-500">
-                  No books yet.
+                  <%= notFoundMessage || "No books yet." %>
                 </td>
               </tr>
               <% } %>
@@ -186,6 +192,32 @@
             if (!page) return;
             window.location.href = `/books?page=${page}`;
           }
+
+          // Dynamically update the not-found message with search term from URL
+          (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const title = urlParams.get('title');
+            const author = urlParams.get('author');
+            const searchTerm = title || author;
+            const hasNoResults = document.querySelector('tbody td[colspan]') !== null;
+            
+            // Only update if we have a search term and no results
+            if (searchTerm && hasNoResults) {
+              const notFoundMessage = 'Sorry, no book was found with that name ' + searchTerm + '.';
+              
+              // Update the banner message if it exists
+              const bannerMessage = document.querySelector('.bg-amber-50');
+              if (bannerMessage) {
+                bannerMessage.textContent = notFoundMessage;
+              }
+              
+              // Update the table message if it exists
+              const tableMessage = document.querySelector('tbody td[colspan]');
+              if (tableMessage) {
+                tableMessage.textContent = notFoundMessage;
+              }
+            }
+          })();
         </script>
       </section>
     </main>

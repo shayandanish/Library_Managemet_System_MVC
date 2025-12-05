@@ -20,7 +20,7 @@
             <%= error %>
           </div>
         <% } %>
-        <form action="/admin/login" method="POST" class="space-y-4">
+        <form action="/admin/login" method="POST" class="space-y-4" autocomplete="on">
           <div>
             <label
               for="name"
@@ -32,6 +32,7 @@
               id="name"
               name="name"
               required
+              autocomplete="username"
               placeholder="Enter your username"
               class="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-400 focus:ring-indigo-300"
             />
@@ -47,6 +48,7 @@
               id="password"
               name="password"
               required
+              autocomplete="current-password"
               placeholder="Enter your password"
               class="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-400 focus:ring-indigo-300"
             />

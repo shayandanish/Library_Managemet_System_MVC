@@ -1,12 +1,10 @@
 // server.js
 const express = require("express");
-const mongoose = require("mongoose");
-const fs = require("fs");
 const path = require("path");
-const Book = require("./models/Book");
-const bookRoutes = require("./routes/bookRoutes"); // ✅ correct file name
+const bookRoutes = require("./routes/bookRoutes");
 const userRoutes = require("./routes/userRoutes");
 const galleryRoutes = require("./routes/galleryRoutes");
+const connectDB = require("./config/db");
 require("dotenv").config();
 
 // Import the cookie parser.  We load this near the top because multiple
@@ -33,27 +31,8 @@ app.set("views", path.join(__dirname, "views"));
 // to be referenced directly from templates (e.g. /images/library.png).
 app.use(express.static(path.join(__dirname, "public")));
 
-// DB connect (no deprecated options needed)
-// Read the MongoDB URI from the MONGODB_URI environment variable.  If it is
-// undefined fall back to a local database.  Avoid hardcoding credentials in
-// source code – load them from your environment or a secrets manager.
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/AIPS_library_DB";
-mongoose
-  .connect(MONGODB_URI)
-  .then(async () => {
-    console.log("✅ MongoDB Connected");
-
-    // Seed only if empty
-    const count = await Book.countDocuments();
-    if (count === 0) {
-      const seedPath = path.join(__dirname, "data", "books.json");
-      const data = JSON.parse(fs.readFileSync(seedPath, "utf-8"));
-      await Book.insertMany(data);
-      console.log("📥 Books imported from JSON");
-    }
-  })
-  .catch((err) => console.error("❌ DB Error:", err));
+// Connect to database
+connectDB();
 
 // Routes
 // Root landing page.  If the visitor already has a valid admin cookie we
@@ -90,8 +69,8 @@ const adminRouter = express.Router();
 // access the dashboard.
 // Administrator credentials can be specified via environment variables.  Use
 // defaults only for development – in production configure real credentials.
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "librarian";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "library123";
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "aips";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "aipslib123";
 
 // GET /admin/login – Render a simple login form for librarians/admins.  This
 // uses the `adminLogin.ejs` view from the views folder.  If the user is
@@ -113,15 +92,22 @@ adminRouter.get("/login", (req, res) => {
 // written so subsequent requests can be identified as authenticated.  On
 // failure the form is re‑rendered with an error message.
 adminRouter.post("/login", (req, res) => {
-  const { name, password } = req.body || {};
+  // Extract and trim form data to handle mobile browser whitespace issues
+  const name = req.body?.name ? String(req.body.name).trim() : "";
+  const password = req.body?.password ? String(req.body.password).trim() : "";
+
   // Require both fields
   if (!name || !password) {
     return res.status(400).render("adminLogin", {
       error: "Please enter both username and password.",
     });
   }
-  // Check credentials
-  if (name === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+
+  // Check credentials (compare trimmed values) - ensure exact match
+  const usernameMatch = name === ADMIN_USERNAME;
+  const passwordMatch = password === ADMIN_PASSWORD;
+
+  if (usernameMatch && passwordMatch) {
     // Successful login: set a cookie to flag this session as an admin.  The
     // cookie is HTTP‑only to prevent client‑side scripts from accessing it.
     // Use SameSite=Lax so the cookie is sent on top‑level navigations back
@@ -130,6 +116,7 @@ adminRouter.post("/login", (req, res) => {
       httpOnly: true,
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
+      path: "/", // Explicitly set path to ensure cookie is available site-wide
       // Only send the cookie over HTTPS when running in production.  When
       // NODE_ENV is not production (e.g. during development), omit the
       // secure flag so local HTTP works without TLS.

@@ -100,8 +100,7 @@ async function findBookByParam(idOrCode) {
 
 //
 
-/** GET /books — list with add form */
-exports.listBooks = async (req, res, next) => {
+/** GET /books — list with add form */exports.listBooks = async (req, res, next) => {
   try {
     const { title = "", author = "", page = 1 } = req.query; // Default page = 1
     const perPage = 10; // Books per page
@@ -126,17 +125,34 @@ exports.listBooks = async (req, res, next) => {
 
     // Calculate the total number of books
     const totalBooks = await Book.countDocuments(filter);
-    const totalPages = Math.ceil(totalBooks / perPage); // Calculate total pages
+    const totalPages = Math.max(1, Math.ceil(totalBooks / perPage)); // Avoid zero pages
 
     // Ensure currentPage is within valid bounds
-    const currentPage = Math.min(Math.max(parseInt(page) || 1, 1), totalPages); // Correct currentPage validation
+    const requestedPage = parseInt(page, 10) || 1;
+    const currentPage = Math.min(Math.max(requestedPage, 1), totalPages);
 
-    // Fetch books for the current page
-    const books = await Book.find(filter)
-      .sort({ createdAt: 1, _id: 1 })
-      .skip((currentPage - 1) * perPage) // Skip books from previous pages
-      .limit(perPage) // Limit to perPage number of books
-      .lean();
+    // When no results, skip querying and show a friendly message
+    const hasResults = totalBooks > 0;
+    const books = hasResults
+      ? await Book.find(filter)
+          .sort({ createdAt: 1, _id: 1 })
+          .skip((currentPage - 1) * perPage) // Skip books from previous pages
+          .limit(perPage) // Limit to perPage number of books
+          .lean()
+      : [];
+    
+    // Not-found message that echoes the user's search query (title/author)
+    // Format: 'Sorry, no book or author was found with that name [search term].'
+    const titleSearch = req.query.title ? String(req.query.title).trim() : "";
+    const authorSearch = req.query.author ? String(req.query.author).trim() : "";
+    // Use title if available, otherwise use author, otherwise empty
+    const searchTerm = titleSearch || authorSearch;
+
+    const notFoundMessage = !hasResults && searchTerm
+      ? `Sorry, no book or author was found with that name ${searchTerm}.`
+      : !hasResults
+      ? "Sorry, no book or author was found with that name."
+      : "";
 
     // Determine admin status by inspecting the isAdmin cookie
     const cookies = cookie.parse(req.headers.cookie || "");
@@ -150,11 +166,13 @@ exports.listBooks = async (req, res, next) => {
       currentPage,
       totalPages,
       totalBooks, // Pass totalBooks to display
+      notFoundMessage, // Pass the notFoundMessage to the view
     });
   } catch (err) {
     next(err);
   }
 };
+
 
 /** POST /books/add */
 exports.addBook = async (req, res, next) => {
