@@ -15,29 +15,41 @@
   </head>
   <body class="min-h-screen bg-slate-50">
     <header class="bg-white border-b">
-      <div class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+      <div
+        class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between"
+      >
         <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Add Book</h1>
         <!-- Link back to the list of books -->
-        <a href="/books" class="text-sm text-indigo-600 hover:text-indigo-500">📚 View Books</a>
+        <a href="/books" class="text-sm text-indigo-600 hover:text-indigo-500">
+          View Books</a
+        >
       </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-6 py-8">
       <!-- Flash / message banner -->
       <% if (query && query.msg) { %>
-        <div class="mb-4 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-800 px-4 py-3">
-          <%= query.msg %>
-        </div>
+      <div
+        class="mb-4 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-800 px-4 py-3"
+      >
+        <%= query.msg %>
+      </div>
       <% } %>
 
       <!-- Add Book Card -->
       <section class="bg-white border rounded-2xl shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-slate-800 mb-4">Add a New Book</h2>
-        <form action="/books/add" method="POST" class="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">
+          Add a New Book
+        </h2>
+        <form
+          action="/books/add"
+          method="POST"
+          class="grid grid-cols-1 md:grid-cols-6 gap-4"
+        >
           <input
             type="text"
             name="bookID"
-            placeholder="Book ID (auto)"
+            placeholder="Book ID "
             class="md:col-span-2 rounded-xl border-slate-200 focus:border-indigo-400 focus:ring-indigo-300"
           />
           <input
@@ -87,7 +99,7 @@
           <input
             type="text"
             name="shelf"
-            placeholder="Shelf (e.g., Aisle B, Row 3)"
+            placeholder="Shelf"
             class="md:col-span-2 rounded-xl border-slate-200 focus:border-indigo-400 focus:ring-indigo-300"
           />
 
